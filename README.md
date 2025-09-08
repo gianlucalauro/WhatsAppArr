@@ -57,6 +57,8 @@ Build and run locally:
    whatsapparr
 ```
 
+> You can also use my image: `ghcr.io/gianlucalauro/whatsapparr:latest`
+
 ## Configuration
 
 Environment variables:
