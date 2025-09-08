@@ -142,6 +142,19 @@ Supported Radarr event types in the formatter:
 To extend support for other *arrs (e.g., Sonarr):
 - Add a new case in `buildMessage(body)` to detect `instanceName` (e.g., `case 'Sonarr':`) and implement a `buildSonarrMessage(eventType, series, episode, etc)` that formats the message.
 
+## CI/CD (GitHub Actions)
+A GitHub Actions workflow builds and publishes a Docker image to GitHub Container Registry (GHCR) on every push to the main branch.
+
+- Image name: ghcr.io/<owner>/<repo>
+- Tags:
+  - latest (for default branch)
+  - sha-<short-commit-sha>
+- The workflow logs in using the built-in GITHUB_TOKEN with packages: write permission.
+
+Setup notes:
+- Ensure Actions can publish packages: in repository settings, set Actions permissions to allow "Read and write permissions" (or explicitly grant packages: write in the workflow, which is already configured).
+- If you want the package to be public: after the first push, go to the Package page in GHCR and change its visibility to Public.
+
 ## Troubleshooting
 - Stuck on "WhatsApp client not ready yet": wait a few seconds after start, and make sure you scanned the QR code successfully. Delete `auth_data/` to force re-login if needed.
 - "Authentication failed": as logged, delete `auth_data/` and restart to scan again.
