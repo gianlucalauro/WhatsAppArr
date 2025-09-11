@@ -10,6 +10,7 @@ Note: At the moment, the message builder includes templates only for Radarr even
 - QR-based WhatsApp login (persisted with LocalAuth)
 - Webhook endpoint to receive events from *arr software
 - Send to either a WhatsApp group (by name) or to a user (by contact name or phone number)
+- Accept-Language based i18n for HTTP responses and WhatsApp messages (English/Italian out of the box; easily extensible)
 - Docker image or plain Node.js execution
 
 ## Prerequisites
@@ -74,6 +75,11 @@ Single POST endpoint:
  POST /:type/:chatNameBase64
 ```
 
+Language detection:
+- The server uses the HTTP header `Accept-Language` to localize both HTTP responses and the WhatsApp message content.
+- Supported out of the box: `en`, `it`. Fallback is `en`.
+- Example headers: `Accept-Language: it`, `Accept-Language: en-US,en;q=0.9`.
+
 Parameters:
 - type: `group` or `user`.
 - chatNameBase64: Base64-encoded name of the target chat.
@@ -93,10 +99,23 @@ Response codes:
 
 You can trigger a test event manually. The server recognizes an event with `eventType: "Test"` and includes `instanceName` for the display:
 
-Request:
+Request (Italian):
 ```
 POST http://localhost:3000/group/UGl6emEgTmVyZCBEb21hbmRh  # "Pizza Nerd Domanda" encoded in Base64 as an example
 Content-Type: application/json
+Accept-Language: it
+
+{
+  "instanceName": "Radarr",
+  "eventType": "Test"
+}
+```
+
+Request (English):
+```
+POST http://localhost:3000/group/UGl6emEgTmVyZCBEb21hbmRh
+Content-Type: application/json
+Accept-Language: en
 
 {
   "instanceName": "Radarr",

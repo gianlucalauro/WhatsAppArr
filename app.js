@@ -1,9 +1,32 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const express = require('express');
 const qrcode = require('qrcode-terminal');
+const i18next = require("i18next");
+const Backend = require("i18next-fs-backend/cjs");
+const i18nextMiddleware = require("i18next-http-middleware/cjs");
+const path = require("path");
+const { buildMessage } = require('./utils/messages/messages');
 
 const app = express();
 app.use(express.json());
+
+i18next
+  .use(Backend)
+  .use(i18nextMiddleware.LanguageDetector)
+  .init({
+    fallbackLng: 'en',
+    preload: ['en', 'it'],
+    backend: {
+      loadPath: path.join(__dirname, 'locales/{{lng}}/translation.json')
+    },
+    detection: {
+      order: ['header'],
+      caches: false
+    },
+    interpolation: { escapeValue: false }
+  });
+
+app.use(i18nextMiddleware.handle(i18next));
 
 let clientReady = false;
 
@@ -80,7 +103,7 @@ app.post('/:type/:chatName', async (req, res) => {
             });
         }
 
-        const message = buildMessage(req.body);
+        const message = buildMessage(req);
 
         await client.sendMessage(targetChat.id._serialized, message, { "linkPreview": true });
 
@@ -97,49 +120,6 @@ app.post('/:type/:chatName', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-function buildMessage(body) {
-    const { instanceName, eventType } = body;
-    if (eventType === "Test") {
-        return `✅ Test notification from ${instanceName}.\n\n` +
-            `Everything is working fine! 🚀`;
-    }
-
-    switch (instanceName) {
-        case 'Radarr':
-            const { movie, movieFile } = body;
-            return buildRadarrMessage(eventType, movie, movieFile)
-    }
-}
-
-function buildRadarrMessage(eventType, movie, movieFile) {
-    const movieTitle = movie?.title || 'Unknown movie';
-    const movieYear = movie?.year ? ` (${movie.year})` : '';
-    const quality = movieFile?.quality || 'Unknown quality';
-    const link = movie?.imdbId ? `https://www.imdb.com/title/${movie.imdbId}/` : 'Unknown link';
-
-    switch (eventType) {
-        case 'Download':
-            return `🎬 New movie downloaded!\n\n` +
-                `🎞️ Title: ${movieTitle}${movieYear}\n` +
-                `📺 Quality: ${quality}\n\n` +
-                `🔗 Info: ${link}\n\n` +
-                `Enjoy watching! 🍿`;
-
-        case 'MovieDelete':
-            return `🗑️ Movie deleted!\n\n` +
-                `🎞️ Title: ${movieTitle}${movieYear}\n` +
-                `📺 Quality: ${quality}\n\n` +
-                `🔗 Info: ${link}`;
-
-        default:
-            return `ℹ️ Event received: ${eventType}\n\n` +
-                `🎞️ Title: ${movieTitle}${movieYear}\n` +
-                `📺 Quality: ${quality}\n\n` +
-                `🔗 Info: ${link}`;
-    }
-}
-
 
 client.initialize();
 

@@ -1,0 +1,39 @@
+{
+  "logs": {
+    "qr_header": "SCANSIONA QUESTO QR CODE CON WHATSAPP:",
+    "client_ready": "Client WhatsApp pronto!",
+    "auth_failed": "Autenticazione fallita, elimina auth_data e riprova",
+    "client_disconnected": "Client disconnesso",
+    "webhook_received": "Webhook ricevuto:",
+    "url_params": "Parametri URL:",
+    "notification_sent": "Notifica inviata per → {{type}}: {{name}}",
+    "server_running": "Server in esecuzione sulla porta {{port}}"
+  },
+  "errors": {
+    "client_not_ready": "Client WhatsApp non ancora pronto",
+    "invalid_type": "Il tipo deve essere \"group\" o \"user\"",
+    "not_found_group": "Gruppo \"{{name}}\" non trovato",
+    "not_found_user": "Utente \"{{name}}\" non trovato",
+    "send_error": "Errore durante l'invio della notifica"
+  },
+  "responses": {
+    "notification_sent": "Notifica inviata!",
+    "sent_to": "Inviato a"
+  },
+  "messages": {
+    "test_title": "Notifica di test da {{instance}}.",
+    "test_body": "Tutto funziona correttamente! 🚀",
+    "radarr": {
+      "download_title": "Nuovo film scaricato!",
+      "deleted_title": "Film eliminato!",
+      "event_received": "Evento ricevuto: {{event}}",
+      "title": "Titolo",
+      "quality": "Qualità",
+      "info": "Info",
+      "enjoy": "Buona visione! 🍿",
+      "unknown_movie": "Film sconosciuto",
+      "unknown_quality": "Qualità sconosciuta",
+      "unknown_link": "Link sconosciuto"
+    }
+  }
+}
