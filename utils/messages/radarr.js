@@ -2,7 +2,7 @@ function buildRadarrMessage(eventType, movie, movieFile, t) {
   const movieTitle = movie?.title || t('messages.radarr.unknown_movie');
   const movieYear = movie?.year ? ` (${movie.year})` : '';
   const quality = movieFile?.quality || t('messages.radarr.unknown_quality');
-  const link = movie?.imdbId ? `https://www.imdb.com/title/${movie.imdbId}/` : t('messages.radarr.unknown_link');
+  const link = movie?.tmdbId ? `https://www.themoviedb.org/movie/${movie.tmdbId}` : t('messages.radarr.unknown_link');
 
   switch (eventType) {
     case 'Download':
