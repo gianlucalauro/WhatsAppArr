@@ -9,20 +9,20 @@ function buildRadarrMessage(eventType, movie, movieFile, t) {
       return `🎬 ${t('messages.radarr.download_title')}\n\n` +
         `🎞️ ${t('messages.radarr.title')}: ${movieTitle}${movieYear}\n` +
         `📺 ${t('messages.radarr.quality')}: ${quality}\n\n` +
-        `🔗 ${t('messages.radarr.info')}: ${link}\n\n` +
+        `${link}\n\n` +
         `${t('messages.radarr.enjoy')}`;
 
     case 'MovieDelete':
       return `🗑️ ${t('messages.radarr.deleted_title')}\n\n` +
         `🎞️ ${t('messages.radarr.title')}: ${movieTitle}${movieYear}\n` +
         `📺 ${t('messages.radarr.quality')}: ${quality}\n\n` +
-        `🔗 ${t('messages.radarr.info')}: ${link}`;
+        `${link}`;
 
     default:
       return `ℹ️ ${t('messages.radarr.event_received', { event: eventType })}\n\n` +
         `🎞️ ${t('messages.radarr.title')}: ${movieTitle}${movieYear}\n` +
         `📺 ${t('messages.radarr.quality')}: ${quality}\n\n` +
-        `🔗 ${t('messages.radarr.info')}: ${link}`;
+        `${link}`;
   }
 }
 
