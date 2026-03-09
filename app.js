@@ -2,7 +2,8 @@ const {
     default: makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
-    fetchLatestBaileysVersion
+    fetchLatestBaileysVersion,
+    getUrlInfo
 } = require('baileys');
 const express = require('express');
 const qrcode = require('qrcode-terminal');
@@ -68,6 +69,28 @@ async function connectToWhatsApp() {
     });
 }
 
+async function sendMessage(jid, message) {
+    const text = typeof message === 'string' ? message : message?.text;
+    const urlMatch = text?.match(/https?:\/\/[^\s]+/);
+
+    let content = typeof message === 'string' ? { text: message } : message;
+
+    if (urlMatch) {
+        try {
+            const linkPreview = await getUrlInfo(urlMatch[0], {
+                thumbnailWidth: 1024,
+                fetchOpts: { timeout: 8000 },
+                uploadImage: sock.waUploadToServer,
+            });
+            content = { ...content, linkPreview };
+        } catch (e) {
+            console.warn('⚠️ Link preview failed:', e.message);
+        }
+    }
+
+    return sock.sendMessage(jid, content);
+}
+
 app.post('/:type/:chatName', async (req, res) => {
     console.log('📡 Webhook received:', req.body);
     console.log('📋 URL parameters:', req.params);
@@ -102,9 +125,7 @@ app.post('/:type/:chatName', async (req, res) => {
         }
 
         const message = buildMessage(req);
-        const content = typeof message === 'string' ? { text: message } : message;
-
-        await sock.sendMessage(targetJid, content);
+        await sendMessage(targetJid, message);
 
         console.log(`✅ Notification sent → ${type}: ${decodedChatName}`);
         res.json({ success: true, message: 'Notification sent!', sentTo: decodedChatName, type });
