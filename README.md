@@ -2,7 +2,7 @@
 
 Forward *Arrs webhook events to WhatsApp users or groups.
 
-WhatsAppArr is a tiny Express server that connects to WhatsApp via whatsapp-web.js and exposes a simple webhook endpoint. When your *arr apps (Radarr, Sonarr, etc.) send a webhook payload, WhatsAppArr formats it and posts a notification to a specified WhatsApp user or group.
+WhatsAppArr is a tiny Express server that connects to WhatsApp via baileys and exposes a simple webhook endpoint. When your *arr apps (Radarr, Sonarr, etc.) send a webhook payload, WhatsAppArr formats it and posts a notification to a specified WhatsApp user or group.
 
 Note: At the moment, the message builder includes templates only for Radarr events (Download, MovieDelete, generic). Other *arrs will be implemented soon.
 
@@ -19,7 +19,7 @@ Note: At the moment, the message builder includes templates only for Radarr even
 - Access to your *arr application(s) to configure webhooks
 
 ## Security and disclaimers
-- This project uses an unofficial API (whatsapp-web.js) that automates WhatsApp Web. Use at your own risk.
+- This project uses an unofficial API (baileys) that automates WhatsApp Web. Use at your own risk.
 - Authentication data is stored locally in the `auth_data/` folder. Keep it private and do not commit it.
 - Only expose the webhook endpoint to trusted networks, or put it behind authentication/reverse proxy controls.
 
@@ -158,7 +158,7 @@ Supported Radarr event types in the formatter:
 ## Development
 - Main entry: `app.js`
 - Express server handles `POST /:type/:chatName` and passes payloads to message builders
-- WhatsApp client: `whatsapp-web.js` with `LocalAuth` storing auth under `./auth_data`
+- WhatsApp client: `baileys` with `LocalAuth` storing auth under `./auth_data`
 
 To extend support for other *arrs (e.g., Sonarr):
 - Add a new case in `buildMessage(body)` to detect `instanceName` (e.g., `case 'Sonarr':`) and implement a `buildSonarrMessage(eventType, series, episode, etc)` that formats the message.
