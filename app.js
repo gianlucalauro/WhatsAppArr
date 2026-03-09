@@ -11,7 +11,7 @@ const i18next = require("i18next");
 const Backend = require("i18next-fs-backend/cjs");
 const i18nextMiddleware = require("i18next-http-middleware/cjs");
 const path = require("path");
-const { buildMessage } = require('./utils/messages/messages');
+const {buildMessage} = require('./utils/messages/messages');
 
 const app = express();
 app.use(express.json());
@@ -25,8 +25,8 @@ i18next
         backend: {
             loadPath: path.join(__dirname, 'locales/{{lng}}/translation.json')
         },
-        detection: { order: ['header'], caches: false },
-        interpolation: { escapeValue: false }
+        detection: {order: ['header'], caches: false},
+        interpolation: {escapeValue: false}
     });
 
 app.use(i18nextMiddleware.handle(i18next));
@@ -35,19 +35,19 @@ let sock = null;
 let clientReady = false;
 
 async function connectToWhatsApp() {
-    const { state, saveCreds } = await useMultiFileAuthState('./auth_data');
-    const { version } = await fetchLatestBaileysVersion();
+    const {state, saveCreds} = await useMultiFileAuthState('./auth_data');
+    const {version} = await fetchLatestBaileysVersion();
 
-    sock = makeWASocket({ version, auth: state, generateHighQualityLinkPreview: true });
+    sock = makeWASocket({version, auth: state, generateHighQualityLinkPreview: true});
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+    sock.ev.on('connection.update', ({connection, lastDisconnect, qr}) => {
         if (qr) {
             console.log('='.repeat(50));
             console.log('SCAN THIS QR CODE WITH WHATSAPP:');
             console.log('='.repeat(50));
-            qrcode.generate(qr, { small: true });
+            qrcode.generate(qr, {small: true});
             console.log('='.repeat(50));
         }
 
@@ -73,16 +73,16 @@ async function sendMessage(jid, message) {
     const text = typeof message === 'string' ? message : message?.text;
     const urlMatch = text?.match(/https?:\/\/[^\s]+/);
 
-    let content = typeof message === 'string' ? { text: message } : message;
+    let content = typeof message === 'string' ? {text: message} : message;
 
     if (urlMatch) {
         try {
             const linkPreview = await getUrlInfo(urlMatch[0], {
                 thumbnailWidth: 1024,
-                fetchOpts: { timeout: 8000 },
+                fetchOpts: {timeout: 8000},
                 uploadImage: sock.waUploadToServer,
             });
-            content = { ...content, linkPreview };
+            content = {...content, linkPreview};
         } catch (e) {
             console.warn('⚠️ Link preview failed:', e.message);
         }
@@ -96,14 +96,14 @@ app.post('/:type/:chatName', async (req, res) => {
     console.log('📋 URL parameters:', req.params);
 
     if (!clientReady) {
-        return res.status(503).json({ error: 'WhatsApp client not ready yet' });
+        return res.status(503).json({error: 'WhatsApp client not ready yet'});
     }
 
-    const { type, chatName } = req.params;
+    const {type, chatName} = req.params;
     const decodedChatName = Buffer.from(chatName, 'base64').toString('utf8');
 
     if (type !== 'group' && type !== 'user') {
-        return res.status(400).json({ error: 'Type must be "group" or "user"' });
+        return res.status(400).json({error: 'Type must be "group" or "user"'});
     }
 
     try {
@@ -128,11 +128,11 @@ app.post('/:type/:chatName', async (req, res) => {
         await sendMessage(targetJid, message);
 
         console.log(`✅ Notification sent → ${type}: ${decodedChatName}`);
-        res.json({ success: true, message: 'Notification sent!', sentTo: decodedChatName, type });
+        res.json({success: true, message: 'Notification sent!', sentTo: decodedChatName, type});
 
     } catch (error) {
         console.error('❌ Error sending notification:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({error: error.message});
     }
 });
 
