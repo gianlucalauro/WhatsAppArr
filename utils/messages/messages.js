@@ -1,5 +1,6 @@
 const {buildRadarrMessage} = require("./radarr");
 const i18next = require("i18next");
+const {buildSonarrMessage} = require("./sonarr");
 
 function buildMessage(req) {
     const t = req.t || i18next.t.bind(i18next);
@@ -14,6 +15,9 @@ function buildMessage(req) {
         case 'Radarr':
             const { movie, movieFile } = body;
             return buildRadarrMessage(eventType, movie, movieFile, t)
+        case 'Sonarr':
+            const { series, episodes, episodeFile, release } = body;
+            return buildSonarrMessage(eventType, series, episodes, episodeFile, release, t)
     }
 }
 
