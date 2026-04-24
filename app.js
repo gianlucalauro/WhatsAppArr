@@ -91,7 +91,7 @@ async function sendMessage(jid, message) {
     return sock.sendMessage(jid, content);
 }
 
-app.post('/:type/:chatName', async (req, res) => {
+app.post('/webhook/:jid', async (req, res) => {
     console.log('📡 Webhook received:', req.body);
     console.log('📋 URL parameters:', req.params);
 
@@ -99,39 +99,59 @@ app.post('/:type/:chatName', async (req, res) => {
         return res.status(503).json({error: 'WhatsApp client not ready yet'});
     }
 
-    const {type, chatName} = req.params;
-    const decodedChatName = Buffer.from(chatName, 'base64').toString('utf8');
-
-    if (type !== 'group' && type !== 'user') {
-        return res.status(400).json({error: 'Type must be "group" or "user"'});
-    }
+    const {jid} = req.params;
 
     try {
-        let targetJid = null;
-
-        if (type === 'group') {
-            const groups = await sock.groupFetchAllParticipating();
-            const found = Object.entries(groups).find(([, meta]) => meta.subject === decodedChatName);
-            if (found) targetJid = found[0];
-        } else {
-            const numericOnly = decodedChatName.replace(/\D/g, '');
-            if (numericOnly) targetJid = `${numericOnly}@s.whatsapp.net`;
-        }
-
-        if (!targetJid) {
-            return res.status(404).json({
-                error: `${type === 'group' ? 'Group' : 'User'} "${decodedChatName}" not found`
-            });
-        }
-
         const message = buildMessage(req);
-        await sendMessage(targetJid, message);
+        await sendMessage(jid, message);
 
-        console.log(`✅ Notification sent → ${type}: ${decodedChatName}`);
-        res.json({success: true, message: 'Notification sent!', sentTo: decodedChatName, type});
+        console.log(`✅ Notification sent → ${jid}`);
+        res.json({success: true, message: 'Notification sent!', sentTo: jid});
 
     } catch (error) {
         console.error('❌ Error sending notification:', error);
+        res.status(500).json({error: error.message});
+    }
+});
+
+
+app.post('/send', async (req, res) => {
+    console.log('📡 Direct send received:', req.body);
+
+    if (!clientReady) {
+        return res.status(503).json({error: 'WhatsApp client not ready yet'});
+    }
+
+    const {jid, message} = req.body;
+
+    if (!jid || !message) {
+        return res.status(400).json({error: 'Fields "jid" and "message" are required'});
+    }
+
+    try {
+        await sendMessage(jid, message);
+
+        console.log(`✅ Direct message sent → ${jid}`);
+        res.json({success: true, message: 'Message sent!', sentTo: jid});
+
+    } catch (error) {
+        console.error('❌ Error sending direct message:', error);
+        res.status(500).json({error: error.message});
+    }
+});
+
+app.get('/groups', async (req, res) => {
+    if (!clientReady) return res.status(503).json({error: 'Client not ready'});
+
+    try {
+        const groups = await sock.groupFetchAllParticipating();
+        const list = Object.entries(groups).map(([jid, meta]) => ({
+            jid,
+            name: meta.subject,
+            participants: meta.participants.length
+        }));
+        res.json(list);
+    } catch (error) {
         res.status(500).json({error: error.message});
     }
 });
