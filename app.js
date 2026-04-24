@@ -3,6 +3,7 @@ const {
     useMultiFileAuthState,
     DisconnectReason,
     fetchLatestBaileysVersion,
+    jidNormalizedUser,
     getUrlInfo
 } = require('baileys');
 const express = require('express');
@@ -67,6 +68,39 @@ async function connectToWhatsApp() {
             }
         }
     });
+
+    sock.ev.on('messages.upsert', async ({messages, type}) => {
+        if (type !== 'notify') return;
+
+        const myLid = jidNormalizedUser(sock.user?.lid);
+
+        for (const msg of messages) {
+            if (msg.key.fromMe) continue;
+
+            const mentionedJids = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+            const isMentioned = mentionedJids.some((jid) => jid === myLid);
+
+            if (!isMentioned) continue;
+
+            const jid = msg.key.remoteJid;
+            console.log(`📣 Mentioned by ${jid}`);
+
+            const webhookUrl = process.env.MENTION_WEBHOOK_URL;
+            const webhookMethod = process.env.MENTION_WEBHOOK_METHOD || 'POST';
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: webhookMethod,
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(msg)
+                    });
+                    console.log(`📡 Webhook sent to ${webhookUrl}`);
+                } catch (err) {
+                    console.error('❌ Webhook error:', err.message);
+                }
+            }
+        }
+    });
 }
 
 async function sendMessage(jid, message) {
@@ -122,14 +156,18 @@ app.post('/send', async (req, res) => {
         return res.status(503).json({error: 'WhatsApp client not ready yet'});
     }
 
-    const {jid, message} = req.body;
+    const {jid, message, quotedMsg} = req.body;
 
     if (!jid || !message) {
         return res.status(400).json({error: 'Fields "jid" and "message" are required'});
     }
 
     try {
-        await sendMessage(jid, message);
+        await sock.sendMessage(
+            jid,
+            typeof message === 'string' ? {text: message} : message,
+            quotedMsg ? {quoted: quotedMsg} : {}
+        );
 
         console.log(`✅ Direct message sent → ${jid}`);
         res.json({success: true, message: 'Message sent!', sentTo: jid});
